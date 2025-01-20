@@ -1,18 +1,3 @@
-/**********************STM32 ¿ªÔ´ÎÞÈË»ú*******************************************************/
-//  V1.0 ¿ªÔ´×÷Õß£ºÐ¡ÄÏ&zin£»ÈÕÆÚ£º2016.11.21
-//           STM32F103C8·É¿ØÒÔ¼°Ò£¿Ø»ù´¡¹¦ÄÜÒÔ¼°ºËÐÄ´úÂëÊµÏÖ£»
-//  V2.0 ¿ªÔ´×÷Õß£ºÐ¡Áõ£»ÈÕÆÚ£º2020.05.17
-//           schedulerÈÎÎñ¼Ü¹¹µ÷Õû£¬Ôö¼ÓÆÁÄ»ÒÔ¼°ÆøÑ¹¼Æ£¬ÐÂÔöPIDÔÚÏßµ÷Õû¹¦ÄÜ£»
-//  V3.0 ¿ªÔ´×÷Õß£ºzhibo_sz&sunsp£»ÈÕÆÚ£º2024.06.01
-//           ÐÂÔöÒ»¼ü¶¨¸ßÆð·É£¬ÐüÍ£ÔË¶¯¿ØÖÆÒÔ¼°É²³µÓÅ»¯£¬ÆøÑ¹Ò£¿ØÆÁÄ»ÍÓÂÝÒÇµÈÄ£¿éÓÅ»¯£¬ÐÂÔöÎÞË¢µç»ú£»
-/********************************************************************************************/
-
-//ÉùÃ÷£º
-//      ±¾³ÌÐò½ö¶Ô¹º»úÓÃ»§¿ªÔ´£¬Ñ§Ï°Ê¹ÓÃ£¬ËùÓÐÈ¨¹éÒÔÉÏ×÷ÕßËùÓÐ£»
-//      Î´¾­Ðí¿É£¬²»µÃ´«ÔÄ¡¢×ªÔØ¡¢¹«¿ª¡¢×ªÂô±¾´úÂë¡£
-
-
-
 #include "stm32f10x.h"
 #include "misc.h"
 #include "delay.h"
@@ -20,7 +5,7 @@
 #include "scheduler.h"
 static volatile uint32_t usTicks = 0;
 
-volatile uint32_t SysTick_count22; //ÏµÍ³µÎ´ðÊ±ÖÓ
+volatile uint32_t SysTick_count22; //ç³»ç»Ÿæ»´ç­”æ—¶é’Ÿ
 u8 sys_init_ok = 1;
 //// ????????? ,49????
 //volatile uint32_t sysTickUptime = 0;
@@ -31,7 +16,7 @@ void cycleCounterInit(void)
     usTicks = clocks.SYSCLK_Frequency / 1000000;
 }
 
-//ÏµÍ³µÎ´ðÊ±ÖÓ»Øµ÷£¬ÔÚstm32f10x.it.c ÖÐ¶Ïµ÷ÓÃ
+//ç³»ç»Ÿæ»´ç­”æ—¶é’Ÿå›žè°ƒï¼Œåœ¨stm32f10x.it.c ä¸­æ–­è°ƒç”¨
 void SysTick_IRQ(void)//1ms??
 {
 	static u8 cnt;
@@ -41,7 +26,7 @@ void SysTick_IRQ(void)//1ms??
 	
 	//LED_1ms_DRV();//?????
 	
-	cnt++;	cnt %= 2; //2ms Ö´ÐÐÒ»´Î Loop_check()
+	cnt++;	cnt %= 2; //2ms æ‰§è¡Œä¸€æ¬¡ Loop_check()
 	if(cnt)	Loop_check();//2ms???? 
 }  
 
@@ -55,7 +40,7 @@ uint32_t GetSysTime_us(void)
     return (ms * 1000) + (usTicks * 1000 - cycle_cnt) / usTicks;
 }
 
-//    ºÁÃë¼¶ÑÓÊ±º¯Êý	 
+//    æ¯«ç§’çº§å»¶æ—¶å‡½æ•°	 
 void delay_ms(uint16_t nms)
 {
 	uint32_t t0=GetSysTime_us();
@@ -74,18 +59,18 @@ void delay_us(unsigned int i)
  
 
 /**************************************************************
- *·µ»ØÏµÍ³µ±Ç°µÄÔËÐÐÊ±¼ä  µ¥Î»ms
+ *è¿”å›žç³»ç»Ÿå½“å‰çš„è¿è¡Œæ—¶é—´  å•ä½ms
  * @param[in] 
  * @param[out] 
  * @return  ms   
  ***************************************************************/	
-float micros(void) //·µ»ØÏµÍ³µ±Ç°Ê±¼ä
+float micros(void) //è¿”å›žç³»ç»Ÿå½“å‰æ—¶é—´
 {
-	 //SysTick_count µÎ´ðÊ±ÖÓms¼ÆÊý
-	 //SysTick->VAL µÎ´ðÊ±ÖÓ¶¨Ê±Æ÷¼ÆÊýÆ÷counter ×Ü¼ÆÊýÂú168000.0f/8.0fÎª1¸öms£¬²¢·¢ÉúµÎ´ðÊ±ÖÓmsÖÐ¶Ï
-	 //168MHZ/1000 = 168000Ã¿¸ömsÐèÒªµÄ¾§ÕñÆµÂÊÊäÁË
-	 //µÎ´ðÊ±ÖÓ°Ë·ÖÆµ
-    return SysTick_count22 + (SysTick->LOAD - SysTick->VAL)/(72000.0f/8.0f);//µ±Ç°ÏµÍ³Ê±¼ä µ¥Î»ms  
+	 //SysTick_count æ»´ç­”æ—¶é’Ÿmsè®¡æ•°
+	 //SysTick->VAL æ»´ç­”æ—¶é’Ÿå®šæ—¶å™¨è®¡æ•°å™¨counter æ€»è®¡æ•°æ»¡168000.0f/8.0fä¸º1ä¸ªmsï¼Œå¹¶å‘ç”Ÿæ»´ç­”æ—¶é’Ÿmsä¸­æ–­
+	 //168MHZ/1000 = 168000æ¯ä¸ªmséœ€è¦çš„æ™¶æŒ¯é¢‘çŽ‡è¾“äº†
+	 //æ»´ç­”æ—¶é’Ÿå…«åˆ†é¢‘
+    return SysTick_count22 + (SysTick->LOAD - SysTick->VAL)/(72000.0f/8.0f);//å½“å‰ç³»ç»Ÿæ—¶é—´ å•ä½ms  
 }
 ///***********************************************************************
 // * 
