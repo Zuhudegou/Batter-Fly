@@ -1,162 +1,150 @@
-/**********************STM32 ¿ªÔ´ÎŞÈË»ú*******************************************************/
-//  V1.0 ¿ªÔ´×÷Õß£ºĞ¡ÄÏ&zin£»ÈÕÆÚ£º2016.11.21
-//           STM32F103C8·É¿ØÒÔ¼°Ò£¿Ø»ù´¡¹¦ÄÜÒÔ¼°ºËĞÄ´úÂëÊµÏÖ£»
-//  V2.0 ¿ªÔ´×÷Õß£ºĞ¡Áõ£»ÈÕÆÚ£º2020.05.17
-//           schedulerÈÎÎñ¼Ü¹¹µ÷Õû£¬Ôö¼ÓÆÁÄ»ÒÔ¼°ÆøÑ¹¼Æ£¬ĞÂÔöPIDÔÚÏßµ÷Õû¹¦ÄÜ£»
-//  V3.0 ¿ªÔ´×÷Õß£ºzhibo_sz&sunsp£»ÈÕÆÚ£º2024.06.01
-//           ĞÂÔöÒ»¼ü¶¨¸ßÆğ·É£¬ĞüÍ£ÔË¶¯¿ØÖÆÒÔ¼°É²³µÓÅ»¯£¬ÆøÑ¹Ò£¿ØÆÁÄ»ÍÓÂİÒÇµÈÄ£¿éÓÅ»¯£¬ĞÂÔöÎŞË¢µç»ú£»
-/********************************************************************************************/
-
-//ÉùÃ÷£º
-//      ±¾³ÌĞò½ö¶Ô¹º»úÓÃ»§¿ªÔ´£¬Ñ§Ï°Ê¹ÓÃ£¬ËùÓĞÈ¨¹éÒÔÉÏ×÷ÕßËùÓĞ£»
-//      Î´¾­Ğí¿É£¬²»µÃ´«ÔÄ¡¢×ªÔØ¡¢¹«¿ª¡¢×ªÂô±¾´úÂë¡£
 
 
 #include "ALL_DEFINE.h" 
-#include "ALL_DATA.h"   //ÔÚÕâÀïÏòÍâ·¢²¼
+#include "ALL_DATA.h"   //åœ¨è¿™é‡Œå‘å¤–å‘å¸ƒ
 #include "spl06.h" 
-#include "SPL06_cankao.h" //ĞÂµÄ
+#include "SPL06_cankao.h" //æ–°çš„
 #include "LED.h"
 #include "Uart1.h"
 #include "USART2.h"
 #include "ANO_Data_Transfer.h"
 #include "ADC.h"
 
-volatile uint32_t SysTick_count; //ÏµÍ³Ê±¼ä¼ÆÊı
-volatile uint8_t spl_flag; //ÏµÍ³Ê±¼ä¼ÆÊı
-_st_Mpu MPU6050;   //MPU6050Ô­Ê¼Êı¾İ
+volatile uint32_t SysTick_count; //ç³»ç»Ÿæ—¶é—´è®¡æ•°
+volatile uint8_t spl_flag; //ç³»ç»Ÿæ—¶é—´è®¡æ•°
+_st_Mpu MPU6050;   //MPU6050åŸå§‹æ•°æ®
 _st_Mag AK8975;   
-_st_AngE Angle;    //µ±Ç°½Ç¶È×ËÌ¬Öµ
-_st_Remote Remote; //Ò£¿ØÍ¨µÀÖµ
+_st_AngE Angle;    //å½“å‰è§’åº¦å§¿æ€å€¼
+_st_Remote Remote; //é¥æ§é€šé“å€¼
 
-//ÕâÀï¶¨ÒåµÄÖµ£¬»¹ÒªÔÚ  all_data.h  ¶¨Òå
+//è¿™é‡Œå®šä¹‰çš„å€¼ï¼Œè¿˜è¦åœ¨  all_data.h  å®šä¹‰
 
-//ĞÂÔö
-struct _Aux_Rc Aux_Rc; //µ±Ç°Ò¡¸ËÖµ½âÎö
+//æ–°å¢
+struct _Aux_Rc Aux_Rc; //å½“å‰æ‘‡æ†å€¼è§£æ
 
 volatile uint32_t ST_CpuID;
  
  
-_st_ALL_flag ALL_flag; //ÏµÍ³±êÖ¾Î»£¬°üº¬½âËø±êÖ¾Î»µÈ
+_st_ALL_flag ALL_flag; //ç³»ç»Ÿæ ‡å¿—ä½ï¼ŒåŒ…å«è§£é”æ ‡å¿—ä½ç­‰
 
 
 
  _st_FlightData FlightData;
- //·É¿ØÃüÁî
+ //é£æ§å‘½ä»¤
 st_Command Command;
 
-PidObject pidRateX; //ÄÚ»·PIDÊı¾İ
+PidObject pidRateX; //å†…ç¯PIDæ•°æ®
 PidObject pidRateY;
 PidObject pidRateZ;
 
-PidObject pidPitch; //Íâ»·PIDÊı¾İ
+PidObject pidPitch; //å¤–ç¯PIDæ•°æ®
 PidObject pidRoll;
 PidObject pidYaw;
 
-PidObject pidHeightRate; //¸ß¶ÈÄÚ»·pid
-PidObject pidHeightHigh; //¸ß¶ÈÍâ»·pid
+PidObject pidHeightRate; //é«˜åº¦å†…ç¯pid
+PidObject pidHeightHigh; //é«˜åº¦å¤–ç¯pid
 
 
 
-PidObject pidHeightThr; //ÓÃÓÚÆ½ºâÓÍÃÅ¶¯Ì¬µ÷Õû
-PidObject pidOffsetRoll; //ÓÃÓÚÁãÆ¯¶¯Ì¬µ÷Õû
+PidObject pidHeightThr; //ç”¨äºå¹³è¡¡æ²¹é—¨åŠ¨æ€è°ƒæ•´
+PidObject pidOffsetRoll; //ç”¨äºé›¶æ¼‚åŠ¨æ€è°ƒæ•´
 
 
 
-PidObject Flow_PosPid_x;    //Íâ»·¹âÁ÷
+PidObject Flow_PosPid_x;    //å¤–ç¯å…‰æµ
 PidObject Flow_PosPid_y;
 
-PidObject Flow_SpeedPid_x;  //ÄÚ»·¹âÁ÷
+PidObject Flow_SpeedPid_x;  //å†…ç¯å…‰æµ
 PidObject Flow_SpeedPid_y;
 
 _st_IMU IMU;
 
-void pid_param_Init(void); //PID¿ØÖÆ²ÎÊı³õÊ¼»¯£¬¸ÄĞ´PID²¢²»»á±£´æÊı¾İ£¬Çëµ÷ÊÔÍê³ÉºóÖ±½ÓÔÚ³ÌĞòÀï¸ü¸Ä ÔÙÉÕÂ¼µ½·É¿Ø
+void pid_param_Init(void); //PIDæ§åˆ¶å‚æ•°åˆå§‹åŒ–ï¼Œæ”¹å†™PIDå¹¶ä¸ä¼šä¿å­˜æ•°æ®ï¼Œè¯·è°ƒè¯•å®Œæˆåç›´æ¥åœ¨ç¨‹åºé‡Œæ›´æ”¹ å†çƒ§å½•åˆ°é£æ§
 
 
-//»ñÈ¡CPUµÄID
+//è·å–CPUçš„ID
 void GetLockCode(void)
 {
-	ST_CpuID = *(vu32*)(0x1ffff7e8);//µÍ×Ö½ÚĞ¾Æ¬IDÓÃÀ´×öÍ¨Ñ¶¶ÔÆµÍ¨µÀ
+	ST_CpuID = *(vu32*)(0x1ffff7e8);//ä½å­—èŠ‚èŠ¯ç‰‡IDç”¨æ¥åšé€šè®¯å¯¹é¢‘é€šé“
 }
 
 u8 count1=0;
 
-///////////////È«²¿³õÊ¼»¯//////////////////////////////////
+///////////////å…¨éƒ¨åˆå§‹åŒ–//////////////////////////////////
 void ALL_Init(void)
 {
 	float STBy;
 	
-	//ÒÆµ½×îÇ°Ãæ³õÊ¼»¯£¬ÒòÎªÓĞÊ±³õÊ¼»¯Ö®Ç°»áÓĞ¸¡¶¯µçÑ¹1v×óÓÒµ¼ÖÂµç»ú×ª¶¯, ÏÂÀ­µç×è¼õĞ¡Îª4.7k
-	//TIM2_PWM_Config();			//2Â·PWM³õÊ¼»¯		
-	//TIM3_PWM_Config();			//2Â·PWM³õÊ¼»¯		
+	//ç§»åˆ°æœ€å‰é¢åˆå§‹åŒ–ï¼Œå› ä¸ºæœ‰æ—¶åˆå§‹åŒ–ä¹‹å‰ä¼šæœ‰æµ®åŠ¨ç”µå‹1vå·¦å³å¯¼è‡´ç”µæœºè½¬åŠ¨, ä¸‹æ‹‰ç”µé˜»å‡å°ä¸º4.7k
+	//TIM2_PWM_Config();			//2è·¯PWMåˆå§‹åŒ–		
+	//TIM3_PWM_Config();			//2è·¯PWMåˆå§‹åŒ–		
 	
 
 	
 	//while(1);
 
 
-	IIC_Init();             //I2C³õÊ¼»¯
+	IIC_Init();             //I2Cåˆå§‹åŒ–
 	count1=1;
 		
-	pid_param_Init();       //PID²ÎÊı³õÊ¼»¯
+	pid_param_Init();       //PIDå‚æ•°åˆå§‹åŒ–
 	count1=2;
 	  
 		
 	
 	
-	LEDInit();              //LEDÉÁµÆ³õÊ¼»¯
+	LEDInit();              //LEDé—ªç¯åˆå§‹åŒ–
 	count1=3;
 
 
 
 
-	MpuInit();              //MPU6050³õÊ¼»¯£¬³õÊ¼»¯¿ªÊ¼£¬ºìµÆÁÁ£¬À¶µÆÃğ£¬
+	MpuInit();              //MPU6050åˆå§‹åŒ–ï¼Œåˆå§‹åŒ–å¼€å§‹ï¼Œçº¢ç¯äº®ï¼Œè“ç¯ç­ï¼Œ
 	count1=4;
 
 
  
 
 
-		//ADC³õÊ¼»¯
+		//ADCåˆå§‹åŒ–
 	ADC1_Init();
 	count1=5;
 	
-	ANO_Uart1_Init(19200);   //½Ó¹âÁ÷Ä£¿é
-	//ANO_Uart1_Init(115200);   //½Ó¹âÁ÷Ä£¿é
+	ANO_Uart1_Init(19200);   //æ¥å…‰æµæ¨¡å—
+	//ANO_Uart1_Init(115200);   //æ¥å…‰æµæ¨¡å—
 	count1=6;
 	
 //	printf("ANO_Uart1_Init  \r\n")	
 	//if (FLY_TYPE == 2) 
 	//{UART2_Init(115200); }      //
 	
-	USART3_Config(500000);        //ÉÏÎ»»ú´®¿Ú³õÊ¼»¯
+	USART3_Config(500000);        //ä¸Šä½æœºä¸²å£åˆå§‹åŒ–
 //	printf("USART3_Config  \r\n");
 	count1=7;
 	
 		
 
 
-	NRF24L01_init();				//2.4GÒ£¿ØÍ¨ĞÅ³õÊ¼»¯,, ³õÊ¼»¯Íê³Éºó£¬À¶µÆÁÁ£¬ºìµÆÃğ£¬Ïàµ±ÓÚAlternateFlash
+	NRF24L01_init();				//2.4Gé¥æ§é€šä¿¡åˆå§‹åŒ–,, åˆå§‹åŒ–å®Œæˆåï¼Œè“ç¯äº®ï¼Œçº¢ç¯ç­ï¼Œç›¸å½“äºAlternateFlash
 	count1=8;
 	
-	//À¶µÆ½»Ìæ±íÊ¾ÍÓÂİÒÇerr£¬ºìµÆ½»Ìæ±íÊ¾ÆøÑ¹¼Æerr
-	if(MPU_Err){ //ÍÓÂİÒÇÒì³£
-			fLED_H(); //ÓÒÉÏ½ÇÀ¶µÆÏ¨Ãğ£¬±íÊ¾ÍÓÂİÒÇÊ§°Ü£¨×óÉÏ½ÇÀ¶µÆÊÇÁÁµÄ£©£¬À¶µÆ½»ÌæÉÁË¸£¬¶ø²»ÊÇÍ¬²½ÉÁË¸
+	//è“ç¯äº¤æ›¿è¡¨ç¤ºé™€èºä»ªerrï¼Œçº¢ç¯äº¤æ›¿è¡¨ç¤ºæ°”å‹è®¡err
+	if(MPU_Err){ //é™€èºä»ªå¼‚å¸¸
+			fLED_H(); //å³ä¸Šè§’è“ç¯ç†„ç­ï¼Œè¡¨ç¤ºé™€èºä»ªå¤±è´¥ï¼ˆå·¦ä¸Šè§’è“ç¯æ˜¯äº®çš„ï¼‰ï¼Œè“ç¯äº¤æ›¿é—ªçƒï¼Œè€Œä¸æ˜¯åŒæ­¥é—ªçƒ
 
 	}
 
 	
-	//if(SPL_init() >=1)	 //ÆøÑ¹¼Æ³õÊ¼»¯, 0±íÊ¾ SUCCESS
-	if(spl0601_init() >=1)	 //ÆøÑ¹¼Æ³õÊ¼»¯, 0±íÊ¾ SUCCESS
-	{//Ê§°Ü£¬ºìÉ«Ö»ÁÁÒ»¸öµÆ
+	//if(SPL_init() >=1)	 //æ°”å‹è®¡åˆå§‹åŒ–, 0è¡¨ç¤º SUCCESS
+	if(spl0601_init() >=1)	 //æ°”å‹è®¡åˆå§‹åŒ–, 0è¡¨ç¤º SUCCESS
+	{//å¤±è´¥ï¼Œçº¢è‰²åªäº®ä¸€ä¸ªç¯
 		  while(1)
 			{ 
 				STBy++;
-				//GPIOB->BSRR = GPIO_Pin_9;  //ÁÁÒ»¸öLED
-				GPIOB->BRR =bLED_io;//½öµãÁÁÓÒÏÂ½ÇºìµÆ£¬µ¼ÖÂºìµÆ½»Ìæ£¬×óÏÂ½ÇÔÚrf³õÊ¼»¯Ê±ÒÑ¾­¹Ø±Õ
+				//GPIOB->BSRR = GPIO_Pin_9;  //äº®ä¸€ä¸ªLED
+				GPIOB->BRR =bLED_io;//ä»…ç‚¹äº®å³ä¸‹è§’çº¢ç¯ï¼Œå¯¼è‡´çº¢ç¯äº¤æ›¿ï¼Œå·¦ä¸‹è§’åœ¨rfåˆå§‹åŒ–æ—¶å·²ç»å…³é—­
 				
-				if(STBy>=100000)//Ê§°Ü
+				if(STBy>=100000)//å¤±è´¥
 				{
 						spl_flag=0; 
 						SPL_Err = 1;
@@ -166,7 +154,7 @@ void ALL_Init(void)
 	}
 	
 	
-	//ÆøÑ¹¼Æ³õÊ¼»¯³É¹¦£¬ÑÓĞø2.4G³É¹¦ºóÀ¶µÆÁÁ£¬ºìµÆÃğ
+	//æ°”å‹è®¡åˆå§‹åŒ–æˆåŠŸï¼Œå»¶ç»­2.4GæˆåŠŸåè“ç¯äº®ï¼Œçº¢ç¯ç­
 	else 
 	{
 			spl_flag=1;
@@ -180,29 +168,29 @@ void ALL_Init(void)
 	
 	
 	
-	//Á½¸öÀ¶µÆ²»Í¬Ê±ÁÁ£¬±íÊ¾ÍÓÂİÒÇÒì³££»µ«½öÏŞÃ»ÓĞÁ¬½ÓÒ£¿Ø¡£
-	//Á½¸öºìµÆ²»Í¬Ê±ÁÁ£¬±íÊ¾ÆøÑ¹¼ÆÒì³££»µ«½öÏŞÃ»ÓĞÁ¬½ÓÒ£¿Ø¡£
+	//ä¸¤ä¸ªè“ç¯ä¸åŒæ—¶äº®ï¼Œè¡¨ç¤ºé™€èºä»ªå¼‚å¸¸ï¼›ä½†ä»…é™æ²¡æœ‰è¿æ¥é¥æ§ã€‚
+	//ä¸¤ä¸ªçº¢ç¯ä¸åŒæ—¶äº®ï¼Œè¡¨ç¤ºæ°”å‹è®¡å¼‚å¸¸ï¼›ä½†ä»…é™æ²¡æœ‰è¿æ¥é¥æ§ã€‚
 
 
 	//while(1);
 	
-	//ÒÆµ½×îÇ°Ãæ³õÊ¼»¯£¬ÒòÎªÓĞÊ±³õÊ¼»¯Ö®Ç°»áÓĞ¸¡¶¯µçÑ¹1v×óÓÒµ¼ÖÂµç»ú×ª¶¯
-	TIM2_PWM_Config();			//2Â·PWM³õÊ¼»¯		
-	TIM3_PWM_Config();			//2Â·PWM³õÊ¼»¯		
+	//ç§»åˆ°æœ€å‰é¢åˆå§‹åŒ–ï¼Œå› ä¸ºæœ‰æ—¶åˆå§‹åŒ–ä¹‹å‰ä¼šæœ‰æµ®åŠ¨ç”µå‹1vå·¦å³å¯¼è‡´ç”µæœºè½¬åŠ¨
+	TIM2_PWM_Config();			//2è·¯PWMåˆå§‹åŒ–		
+	TIM3_PWM_Config();			//2è·¯PWMåˆå§‹åŒ–		
 	delay_ms(10); //10ms
 	
 	//while(1);
 
 	
-//×îºó£¬¿ÕĞÄ±­Âí´ïÏì¼¸ÏÂ	
-#if ( FLY_TYPE !=3 ) //·ÇÎŞË¢µç»ú£¬ÎŞË¢µç»ú¿ª»úÏìÓ¦ÓÉµçµ÷¸ºÔğ¡£
+//æœ€åï¼Œç©ºå¿ƒæ¯é©¬è¾¾å“å‡ ä¸‹	
+#if ( FLY_TYPE !=3 ) //éæ— åˆ·ç”µæœºï¼Œæ— åˆ·ç”µæœºå¼€æœºå“åº”ç”±ç”µè°ƒè´Ÿè´£ã€‚
 
-	//#define PWM0 TIM2->CCR1   //¶¨Ê±Æ÷2 Í¨µÀ1    M1
-	//#define PWM1 TIM2->CCR2		//¶¨Ê±Æ÷2 Í¨µÀ2		M2
-	//#define PWM2 TIM3->CCR1   //¶¨Ê±Æ÷3 Í¨µÀ1		M3
-	//#define PWM3 TIM3->CCR2		//¶¨Ê±Æ÷3 Í¨µÀ2		M4
+	//#define PWM0 TIM2->CCR1   //å®šæ—¶å™¨2 é€šé“1    M1
+	//#define PWM1 TIM2->CCR2		//å®šæ—¶å™¨2 é€šé“2		M2
+	//#define PWM2 TIM3->CCR1   //å®šæ—¶å™¨3 é€šé“1		M3
+	//#define PWM3 TIM3->CCR2		//å®šæ—¶å™¨3 é€šé“2		M4
 
-	TIM_Cmd(TIM2,DISABLE);	//µ÷ÕûÆµÂÊ£¬Îª800Hz
+	TIM_Cmd(TIM2,DISABLE);	//è°ƒæ•´é¢‘ç‡ï¼Œä¸º800Hz
 	TIM_PrescalerConfig(TIM2, SystemCoreClock/(TIM2_PWM_MAX+1)/800 -1 ,TIM_PSCReloadMode_Immediate);
 	TIM_Cmd(TIM2,ENABLE);
 	
@@ -211,17 +199,17 @@ void ALL_Init(void)
 	TIM_Cmd(TIM3,ENABLE);
 	
 	for(u8 i=0; i<3; i++){
-		//µ÷ÕûÕ¼¿Õ±È1.3%£¨13/1000£©£¬Ì«´óÁË»á×ª£»¸úÎŞË¢²»Í¬£¬ÎŞË¢µç»ú¿ÉÒÔÍêÈ«Ìæ´ú·äÃùÆ÷£¬ºÜÏìµ«²»×ª¡£
+		//è°ƒæ•´å ç©ºæ¯”1.3%ï¼ˆ13/1000ï¼‰ï¼Œå¤ªå¤§äº†ä¼šè½¬ï¼›è·Ÿæ— åˆ·ä¸åŒï¼Œæ— åˆ·ç”µæœºå¯ä»¥å®Œå…¨æ›¿ä»£èœ‚é¸£å™¨ï¼Œå¾ˆå“ä½†ä¸è½¬ã€‚
 		TIM2->CCR1=13;	TIM2->CCR2=13; TIM3->CCR1=13; TIM3->CCR2=13; 
-		delay_ms(30); //Ïì30ms
+		delay_ms(30); //å“30ms
 		
-		//»Ö¸´Õ¼¿Õ±ÈÎª0
+		//æ¢å¤å ç©ºæ¯”ä¸º0
 		TIM2->CCR1=0;	TIM2->CCR2=0; TIM3->CCR1=0; TIM3->CCR2=0; 
-		delay_ms(120); //ÔİÍ£0.12s
+		delay_ms(120); //æš‚åœ0.12s
 	}
 
 		
-	TIM_Cmd(TIM2,DISABLE);	//»Ö¸´Õı³£ÆµÂÊ
+	TIM_Cmd(TIM2,DISABLE);	//æ¢å¤æ­£å¸¸é¢‘ç‡
 	TIM_PrescalerConfig(TIM2, SystemCoreClock/(TIM2_PWM_MAX+1)/TIM2_PWM_HZ -1 ,TIM_PSCReloadMode_Immediate);
 	TIM_Cmd(TIM2,ENABLE);
 	
@@ -238,16 +226,16 @@ void ALL_Init(void)
 volatile u8 flow_pid_param_type=0;
 
 
-//ÉèÖÃpid²ÎÊı
+//è®¾ç½®pidå‚æ•°
 void pid_param_Init(void)
 {
 	
-	/////////////////////////////  1. ×ËÌ¬½Ç pid  ////////////////////////////////////
+	/////////////////////////////  1. å§¿æ€è§’ pid  ////////////////////////////////////
 	
 	
-//////////////////1.1 ÄÚ»·ËÙ¶ÈPID///////////////////////	
+//////////////////1.1 å†…ç¯é€Ÿåº¦PID///////////////////////	
 	
-	#if (FLY_TYPE == 1 || FLY_TYPE == 2) //¿ÕĞÄ±­
+	#if (FLY_TYPE == 1 || FLY_TYPE == 2) //ç©ºå¿ƒæ¯
 			//pidRateX.kp = 2.0f;
 			//pidRateY.kp = 2.0f;
 			pidRateX.kp = 1.8f;
@@ -264,7 +252,7 @@ void pid_param_Init(void)
 	
 	
 	
-	#else 		//3 ¡¢ÎŞË¢330   //ÎŞË¢Ç¿¾¢£¬Á¦¶È·´Ó¦Ñ¸ËÙ£¬pidĞèÒªĞ¡Ò»µã£¬Ì«´óÈİÒ×¶¶
+	#else 		//3 ã€æ— åˆ·330   //æ— åˆ·å¼ºåŠ²ï¼ŒåŠ›åº¦ååº”è¿…é€Ÿï¼Œpidéœ€è¦å°ä¸€ç‚¹ï¼Œå¤ªå¤§å®¹æ˜“æŠ–
 	
 			pidRateX.kp = 1.2f;
 			pidRateY.kp = 1.2f;
@@ -283,7 +271,7 @@ void pid_param_Init(void)
 	
 	
 	
-/////////////1.2 Íâ»·½Ç¶ÈPID///////////////////////////
+/////////////1.2 å¤–ç¯è§’åº¦PID///////////////////////////
 	
 	pidPitch.kp = 7.0f;
 	pidRoll.kp = 7.0f;
@@ -300,24 +288,24 @@ void pid_param_Init(void)
 	
 	
 	
-	/////////////////////////////  2. ¶¨¸ß  ////////////////////////////////////
+	/////////////////////////////  2. å®šé«˜  ////////////////////////////////////
 	
 	
 	
-	//////////////////2.1 ¸ß¶È ÄÚ»· PID ²ÎÊı///////////////////////	
+	//////////////////2.1 é«˜åº¦ å†…ç¯ PID å‚æ•°///////////////////////	
 	
-#if (FLY_TYPE == 1 || FLY_TYPE == 2) //¿ÕĞÄ±­
+#if (FLY_TYPE == 1 || FLY_TYPE == 2) //ç©ºå¿ƒæ¯
 	pidHeightRate.kp = 1.2f; //1.2f
 	pidHeightRate.ki = 0.04f;
 	pidHeightRate.kd = 0.085f;
-#else 		//3 ¡¢ÎŞË¢330
+#else 		//3 ã€æ— åˆ·330
 	pidHeightRate.kp = 1.0f; //1.2f
 	pidHeightRate.ki = 0.04f;
 	pidHeightRate.kd = 0.06f;
 #endif
 
 
-	//////////////////2.2 ¸ß¶È Íâ»·PID²ÎÊı///////////////////////	
+	//////////////////2.2 é«˜åº¦ å¤–ç¯PIDå‚æ•°///////////////////////	
 	pidHeightHigh.kp = 1.2f;//1.2f
 	pidHeightHigh.ki = 0.00f;
 	pidHeightHigh.kd = 0.085f;//0.085f
@@ -325,18 +313,18 @@ void pid_param_Init(void)
 
 
 	/*
-		//¸ß¶È ÄÚ»·PID²ÎÊı ËÙ¶È
+		//é«˜åº¦ å†…ç¯PIDå‚æ•° é€Ÿåº¦
 	pidHeightRate.kp = 1.2f; //1.2f
 	pidHeightRate.ki = 0.04f;
 	pidHeightRate.kd = 0.2f;
 
-		//¸ß¶È Íâ»·PID²ÎÊı
+		//é«˜åº¦ å¤–ç¯PIDå‚æ•°
 	pidHeightHigh.kp = 0.6f;//1.2f
 	pidHeightHigh.ki = 0.00f;
 	pidHeightHigh.kd = 0.1f;//0.085f
 	*/
 
-	//»ù´¡ÓÍÃÅpid²ÎÊı
+	//åŸºç¡€æ²¹é—¨pidå‚æ•°
 	
 	pidHeightThr.kp =1.0f;
 	pidHeightThr.ki =0.0f;
@@ -346,94 +334,94 @@ void pid_param_Init(void)
 	
 	
 	
-	///////////////////////////////  3. ¶¨µã  ////////////////////////////////////
+	///////////////////////////////  3. å®šç‚¹  ////////////////////////////////////
 	
-#if (FLY_TYPE == 1 || FLY_TYPE == 2) //¿ÕĞÄ±­
+#if (FLY_TYPE == 1 || FLY_TYPE == 2) //ç©ºå¿ƒæ¯
 	
-//////////////////////////3.1.1¹âÁ÷ xÄÚ»·///////////////////////////////////////////
+//////////////////////////3.1.1å…‰æµ xå†…ç¯///////////////////////////////////////////
 
-	//XÄÚ»·¹âÁ÷PID²ÎÊı  ËÙ¶È
-	//Flow_SpeedPid_x.kp = 0.610f;//±ÈÀı  0.600f
-	//Flow_SpeedPid_x.ki = 0.000f;//»ı·Ö
-	//Flow_SpeedPid_x.kd = 0.400f;//Î¢·Ö
+	//Xå†…ç¯å…‰æµPIDå‚æ•°  é€Ÿåº¦
+	//Flow_SpeedPid_x.kp = 0.610f;//æ¯”ä¾‹  0.600f
+	//Flow_SpeedPid_x.ki = 0.000f;//ç§¯åˆ†
+	//Flow_SpeedPid_x.kd = 0.400f;//å¾®åˆ†
 	
-	//XÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı  ËÙ¶È
-	//Flow_SpeedPid_x.kp = 0.610f;//±ÈÀı  0.600f
-	Flow_SpeedPid_x.kp = 0.500f;//±ÈÀı  0.600f
-	Flow_SpeedPid_x.ki = 0.000f;//»ı·Ö
-	Flow_SpeedPid_x.kd = 0.400f;//Î¢·Ö
+	//Xå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•°  é€Ÿåº¦
+	//Flow_SpeedPid_x.kp = 0.610f;//æ¯”ä¾‹  0.600f
+	Flow_SpeedPid_x.kp = 0.500f;//æ¯”ä¾‹  0.600f
+	Flow_SpeedPid_x.ki = 0.000f;//ç§¯åˆ†
+	Flow_SpeedPid_x.kd = 0.400f;//å¾®åˆ†
 	
 
-	////////////////////////3.1.2¹âÁ÷ yÄÚ»·//////////////////////////////////
+	////////////////////////3.1.2å…‰æµ yå†…ç¯//////////////////////////////////
 	
-	//YÄÚ»·¹âÁ÷PID²ÎÊı ËÙ¶È
-	//Flow_SpeedPid_y.kp = 0.610f;//±ÈÀı
-	//Flow_SpeedPid_y.ki = 0.000f;//»ı·Ö
-	//Flow_SpeedPid_y.kd = 0.400f;//Î¢·Ö
+	//Yå†…ç¯å…‰æµPIDå‚æ•° é€Ÿåº¦
+	//Flow_SpeedPid_y.kp = 0.610f;//æ¯”ä¾‹
+	//Flow_SpeedPid_y.ki = 0.000f;//ç§¯åˆ†
+	//Flow_SpeedPid_y.kd = 0.400f;//å¾®åˆ†
 	
-	//YÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı ËÙ¶È
-	//Flow_SpeedPid_y.kp = 0.610f;//±ÈÀı
-	Flow_SpeedPid_y.kp = 0.500f;//±ÈÀı
-	Flow_SpeedPid_y.ki = 0.000f;//»ı·Ö
-	Flow_SpeedPid_y.kd = 0.400f;//Î¢·Ö
+	//Yå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•° é€Ÿåº¦
+	//Flow_SpeedPid_y.kp = 0.610f;//æ¯”ä¾‹
+	Flow_SpeedPid_y.kp = 0.500f;//æ¯”ä¾‹
+	Flow_SpeedPid_y.ki = 0.000f;//ç§¯åˆ†
+	Flow_SpeedPid_y.kd = 0.400f;//å¾®åˆ†
 	
 	
 	
-	/////////////////////////3.2.1 ¹âÁ÷ xÍâ»·/////////////////////////////////
+	/////////////////////////3.2.1 å…‰æµ xå¤–ç¯/////////////////////////////////
 
-	//XÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı  Î»ÖÃ
-	//Flow_PosPid_x.kp = 2.200f;//±ÈÀı  2.000f
-	Flow_PosPid_x.kp = 2.000f;//±ÈÀı  2.000f
-	Flow_PosPid_x.ki = 0.000f;//»ı·Ö
-	Flow_PosPid_x.kd = 0.006f;//Î¢·Ö
+	//Xå¤–ç¯å…‰æµä½ç½®PIDå‚æ•°  ä½ç½®
+	//Flow_PosPid_x.kp = 2.200f;//æ¯”ä¾‹  2.000f
+	Flow_PosPid_x.kp = 2.000f;//æ¯”ä¾‹  2.000f
+	Flow_PosPid_x.ki = 0.000f;//ç§¯åˆ†
+	Flow_PosPid_x.kd = 0.006f;//å¾®åˆ†
 	
-	/////////////////////////3.2.2 ¹âÁ÷ yÍâ»·/////////////////////////////////
+	/////////////////////////3.2.2 å…‰æµ yå¤–ç¯/////////////////////////////////
 	
-	//YÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı Î»ÖÃ 
-	//Flow_PosPid_y.kp = 2.200f;//±ÈÀı
-	Flow_PosPid_y.kp = 2.000f;//±ÈÀı
-	Flow_PosPid_y.ki = 0.00f;//»ı·Ö
-	Flow_PosPid_y.kd = 0.006f;//Î¢·Ö
+	//Yå¤–ç¯å…‰æµä½ç½®PIDå‚æ•° ä½ç½® 
+	//Flow_PosPid_y.kp = 2.200f;//æ¯”ä¾‹
+	Flow_PosPid_y.kp = 2.000f;//æ¯”ä¾‹
+	Flow_PosPid_y.ki = 0.00f;//ç§¯åˆ†
+	Flow_PosPid_y.kd = 0.006f;//å¾®åˆ†
 
 ///////////////////////////////////////////////////////////////////
 	
 
 
-#else 		//3 ¡¢ÎŞË¢330
+#else 		//3 ã€æ— åˆ·330
 
 
 /*
-//////////////////////////¹âÁ÷ ÄÚ»·///////////////////////////////////////////
+//////////////////////////å…‰æµ å†…ç¯///////////////////////////////////////////
 
-	//XÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı ËÙ¶È
-	Flow_SpeedPid_x.kp = 0.410f;//±ÈÀı  0.600f
-	Flow_SpeedPid_x.ki = 0.000f;//»ı·Ö
-	Flow_SpeedPid_x.kd = 0.300f;//Î¢·Ö
-	//YÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı ËÙ¶È
-	Flow_SpeedPid_y.kp = 0.410f;//±ÈÀı
-	Flow_SpeedPid_y.ki = 0.000f;//»ı·Ö
-	Flow_SpeedPid_y.kd = 0.300f;//Î¢·Ö
+	//Xå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•° é€Ÿåº¦
+	Flow_SpeedPid_x.kp = 0.410f;//æ¯”ä¾‹  0.600f
+	Flow_SpeedPid_x.ki = 0.000f;//ç§¯åˆ†
+	Flow_SpeedPid_x.kd = 0.300f;//å¾®åˆ†
+	//Yå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•° é€Ÿåº¦
+	Flow_SpeedPid_y.kp = 0.410f;//æ¯”ä¾‹
+	Flow_SpeedPid_y.ki = 0.000f;//ç§¯åˆ†
+	Flow_SpeedPid_y.kd = 0.300f;//å¾®åˆ†
 	
-/////////////////////////¹âÁ÷ Íâ»·/////////////////////////////////
+/////////////////////////å…‰æµ å¤–ç¯/////////////////////////////////
 
-	//XÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı Î»ÖÃ
-	Flow_PosPid_x.kp = 2.200f;//±ÈÀı  2.000f
-	Flow_PosPid_x.ki = 0.000f;//»ı·Ö
-	Flow_PosPid_x.kd = 0.006f;//Î¢·Ö
-	//YÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı Î»ÖÃ 
-	Flow_PosPid_y.kp = 2.200f;//±ÈÀı
-	Flow_PosPid_y.ki = 0.00f;//»ı·Ö
-	Flow_PosPid_y.kd = 0.006f;//Î¢·Ö
+	//Xå¤–ç¯å…‰æµä½ç½®PIDå‚æ•° ä½ç½®
+	Flow_PosPid_x.kp = 2.200f;//æ¯”ä¾‹  2.000f
+	Flow_PosPid_x.ki = 0.000f;//ç§¯åˆ†
+	Flow_PosPid_x.kd = 0.006f;//å¾®åˆ†
+	//Yå¤–ç¯å…‰æµä½ç½®PIDå‚æ•° ä½ç½® 
+	Flow_PosPid_y.kp = 2.200f;//æ¯”ä¾‹
+	Flow_PosPid_y.ki = 0.00f;//ç§¯åˆ†
+	Flow_PosPid_y.kd = 0.006f;//å¾®åˆ†
 
 ///////////////////////////////////////////////////////////////////
 */
 
-	flow_pid_param_default(); //ÎŞË¢µç»ú¹âÁ÷pid£¬¶¨µãĞüÍ£Ê±£¬pid²ÎÊı½ÏĞ¡
+	flow_pid_param_default(); //æ— åˆ·ç”µæœºå…‰æµpidï¼Œå®šç‚¹æ‚¬åœæ—¶ï¼Œpidå‚æ•°è¾ƒå°
 
 
 #endif
 
-	Command.FlightMode = NORMOL;  //³õÊ¼»¯Îª×ËÌ¬·ÉĞĞÄ£Ê½
+	Command.FlightMode = NORMOL;  //åˆå§‹åŒ–ä¸ºå§¿æ€é£è¡Œæ¨¡å¼
 }
 
 
@@ -441,16 +429,16 @@ void pid_param_Init(void)
 
 
 
-#if ( FLY_TYPE==3 ) //ÎŞË¢ ¹âÁ÷pidÄ¬ÈÏ²ÎÊı£¬ÊÖ¶¯¶¨¸ßÆğ·É»òÒ»¼ü¶¨¸ßÆğ·ÉĞüÍ£ÖĞ
-  //ÍË³öÄ£Ê½3£¬»òÕß·½ÏòÒ¡¸Ë¶¯×÷½áÊø£¬Ôòµ÷Èë¹âÁ÷Ä¬ÈÏpid²ÎÊı
-	if(flow_pid_param_type!=1) flow_pid_param_default(); //ÎŞË¢µç»ú¹âÁ÷pid£¬¶¨µãĞüÍ£Ê±£¬pid²ÎÊı½ÏĞ¡
+#if ( FLY_TYPE==3 ) //æ— åˆ· å…‰æµpidé»˜è®¤å‚æ•°ï¼Œæ‰‹åŠ¨å®šé«˜èµ·é£æˆ–ä¸€é”®å®šé«˜èµ·é£æ‚¬åœä¸­
+  //é€€å‡ºæ¨¡å¼3ï¼Œæˆ–è€…æ–¹å‘æ‘‡æ†åŠ¨ä½œç»“æŸï¼Œåˆ™è°ƒå…¥å…‰æµé»˜è®¤pidå‚æ•°
+	if(flow_pid_param_type!=1) flow_pid_param_default(); //æ— åˆ·ç”µæœºå…‰æµpidï¼Œå®šç‚¹æ‚¬åœæ—¶ï¼Œpidå‚æ•°è¾ƒå°
 
 #endif
 
 
-#if ( FLY_TYPE==3 ) //ÎŞË¢ ¹âÁ÷pidÔË¶¯²ÎÊı£¬Ò»¼ü¶¨¸ßÆğ·É»ò·½ÏòÒ¡¸ËÒÆ¶¯ÖĞ
-  //½øÈëÄ£Ê½3£¬»òÕß¼ì²âµ½·½ÏòÒ¡¸Ë¶¯×÷£¬Ôòµ÷Èë¹âÁ÷ÔË¶¯pid²ÎÊı
-	if(flow_pid_param_type!=2) flow_pid_param_move();//ÎŞË¢µç»ú¹âÁ÷pid£¬Æğ·ÉºÍÊÖ¶¯ÒÆ¶¯Ê±£¬pid²ÎÊı½Ï´ó
+#if ( FLY_TYPE==3 ) //æ— åˆ· å…‰æµpidè¿åŠ¨å‚æ•°ï¼Œä¸€é”®å®šé«˜èµ·é£æˆ–æ–¹å‘æ‘‡æ†ç§»åŠ¨ä¸­
+  //è¿›å…¥æ¨¡å¼3ï¼Œæˆ–è€…æ£€æµ‹åˆ°æ–¹å‘æ‘‡æ†åŠ¨ä½œï¼Œåˆ™è°ƒå…¥å…‰æµè¿åŠ¨pidå‚æ•°
+	if(flow_pid_param_type!=2) flow_pid_param_move();//æ— åˆ·ç”µæœºå…‰æµpidï¼Œèµ·é£å’Œæ‰‹åŠ¨ç§»åŠ¨æ—¶ï¼Œpidå‚æ•°è¾ƒå¤§
 
 #endif
 
@@ -458,54 +446,54 @@ void pid_param_Init(void)
 
 
 
-//ÎŞË¢µç»ú¹âÁ÷pid£¬¶¨µãĞüÍ£»òÆ½Ê±£¬pid²ÎÊı½ÏĞ¡£¬×·ÇóÆ½ÎÈ£¬·ÀÖ¹¶¶¶¯£»PID²ÎÊı¿ÉÒÔÔÚÒ£¿ØÁ¬½ÓÉÏÎ»»úºóÊµÊ±²é¿´
+//æ— åˆ·ç”µæœºå…‰æµpidï¼Œå®šç‚¹æ‚¬åœæˆ–å¹³æ—¶ï¼Œpidå‚æ•°è¾ƒå°ï¼Œè¿½æ±‚å¹³ç¨³ï¼Œé˜²æ­¢æŠ–åŠ¨ï¼›PIDå‚æ•°å¯ä»¥åœ¨é¥æ§è¿æ¥ä¸Šä½æœºåå®æ—¶æŸ¥çœ‹
 void flow_pid_param_default(void){
 	
-		//if(flow_pid_param_type!=0) return;  //ÕâÒ»¾ä¿ÉÒÔ·ÀÖ¹·ÉĞĞ¹ı³Ìpid²ÎÊı±»×Ô¶¯¸ü¸Ä£¬·½±ãÊ¹ÓÃÉÏÎ»»úĞŞ¸Äpid²ÎÊı
+		//if(flow_pid_param_type!=0) return;  //è¿™ä¸€å¥å¯ä»¥é˜²æ­¢é£è¡Œè¿‡ç¨‹pidå‚æ•°è¢«è‡ªåŠ¨æ›´æ”¹ï¼Œæ–¹ä¾¿ä½¿ç”¨ä¸Šä½æœºä¿®æ”¹pidå‚æ•°
 	
 		flow_pid_param_type=1;
 	
-#if (FLY_TYPE ==3) //ÎŞË¢
+#if (FLY_TYPE ==3) //æ— åˆ·
 		/*
-		//XÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı  ËÙ¶È
-		Flow_SpeedPid_x.kp = 0.400f;//±ÈÀı  0.380f
-		Flow_SpeedPid_x.ki = 0.000f;//»ı·Ö
-		Flow_SpeedPid_x.kd = 0.300f;//Î¢·Ö  0.300f
-		//YÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı ËÙ¶È
-		Flow_SpeedPid_y.kp = Flow_SpeedPid_x.kp;//±ÈÀı
-		Flow_SpeedPid_y.ki = Flow_SpeedPid_x.ki;//»ı·Ö
-		Flow_SpeedPid_y.kd = Flow_SpeedPid_x.kd;//Î¢·Ö
+		//Xå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•°  é€Ÿåº¦
+		Flow_SpeedPid_x.kp = 0.400f;//æ¯”ä¾‹  0.380f
+		Flow_SpeedPid_x.ki = 0.000f;//ç§¯åˆ†
+		Flow_SpeedPid_x.kd = 0.300f;//å¾®åˆ†  0.300f
+		//Yå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•° é€Ÿåº¦
+		Flow_SpeedPid_y.kp = Flow_SpeedPid_x.kp;//æ¯”ä¾‹
+		Flow_SpeedPid_y.ki = Flow_SpeedPid_x.ki;//ç§¯åˆ†
+		Flow_SpeedPid_y.kd = Flow_SpeedPid_x.kd;//å¾®åˆ†
 		
-		//XÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı  Î»ÖÃ
-		Flow_PosPid_x.kp = 1.900f;//±ÈÀı  1.700f
-		Flow_PosPid_x.ki = 0.000f;//»ı·Ö
-		Flow_PosPid_x.kd = 0.006f;//Î¢·Ö  0.006f;
-		//YÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı Î»ÖÃ 
-		Flow_PosPid_y.kp = Flow_PosPid_x.kp;//±ÈÀı
-		Flow_PosPid_y.ki = Flow_PosPid_x.ki;//»ı·Ö
-		Flow_PosPid_y.kd = Flow_PosPid_x.kd;//Î¢·Ö
+		//Xå¤–ç¯å…‰æµä½ç½®PIDå‚æ•°  ä½ç½®
+		Flow_PosPid_x.kp = 1.900f;//æ¯”ä¾‹  1.700f
+		Flow_PosPid_x.ki = 0.000f;//ç§¯åˆ†
+		Flow_PosPid_x.kd = 0.006f;//å¾®åˆ†  0.006f;
+		//Yå¤–ç¯å…‰æµä½ç½®PIDå‚æ•° ä½ç½® 
+		Flow_PosPid_y.kp = Flow_PosPid_x.kp;//æ¯”ä¾‹
+		Flow_PosPid_y.ki = Flow_PosPid_x.ki;//ç§¯åˆ†
+		Flow_PosPid_y.kd = Flow_PosPid_x.kd;//å¾®åˆ†
 		*/
 		
 		
 		
 		
-		//XÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı  ËÙ¶È
-		Flow_SpeedPid_x.kp = 0.410f;//±ÈÀı  0.600f
-		Flow_SpeedPid_x.ki = 0.000f;//»ı·Ö
-		Flow_SpeedPid_x.kd = 0.300f;//Î¢·Ö
-		//YÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı ËÙ¶È
-		Flow_SpeedPid_y.kp = Flow_SpeedPid_x.kp;//±ÈÀı
-		Flow_SpeedPid_y.ki = Flow_SpeedPid_x.ki;//»ı·Ö
-		Flow_SpeedPid_y.kd = Flow_SpeedPid_x.kd;//Î¢·Ö
+		//Xå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•°  é€Ÿåº¦
+		Flow_SpeedPid_x.kp = 0.410f;//æ¯”ä¾‹  0.600f
+		Flow_SpeedPid_x.ki = 0.000f;//ç§¯åˆ†
+		Flow_SpeedPid_x.kd = 0.300f;//å¾®åˆ†
+		//Yå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•° é€Ÿåº¦
+		Flow_SpeedPid_y.kp = Flow_SpeedPid_x.kp;//æ¯”ä¾‹
+		Flow_SpeedPid_y.ki = Flow_SpeedPid_x.ki;//ç§¯åˆ†
+		Flow_SpeedPid_y.kd = Flow_SpeedPid_x.kd;//å¾®åˆ†
 		
-		//XÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı  Î»ÖÃ
-		Flow_PosPid_x.kp = 2.000f;//±ÈÀı  2.000f
-		Flow_PosPid_x.ki = 0.000f;//»ı·Ö
-		Flow_PosPid_x.kd = 0.006f;//Î¢·Ö
-		//YÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı Î»ÖÃ 
-		Flow_PosPid_y.kp = Flow_PosPid_x.kp;//±ÈÀı
-		Flow_PosPid_y.ki = Flow_PosPid_x.ki;//»ı·Ö
-		Flow_PosPid_y.kd = Flow_PosPid_x.kd;//Î¢·Ö
+		//Xå¤–ç¯å…‰æµä½ç½®PIDå‚æ•°  ä½ç½®
+		Flow_PosPid_x.kp = 2.000f;//æ¯”ä¾‹  2.000f
+		Flow_PosPid_x.ki = 0.000f;//ç§¯åˆ†
+		Flow_PosPid_x.kd = 0.006f;//å¾®åˆ†
+		//Yå¤–ç¯å…‰æµä½ç½®PIDå‚æ•° ä½ç½® 
+		Flow_PosPid_y.kp = Flow_PosPid_x.kp;//æ¯”ä¾‹
+		Flow_PosPid_y.ki = Flow_PosPid_x.ki;//ç§¯åˆ†
+		Flow_PosPid_y.kd = Flow_PosPid_x.kd;//å¾®åˆ†
 	
 		
 		
@@ -517,32 +505,32 @@ void flow_pid_param_default(void){
 #endif
 }
 
-//ÎŞË¢µç»ú¹âÁ÷pid£¬Æğ·É»òÕß·½ÏòÒ¡¸Ë¿ØÖÆÒÆ¶¯Ê±£¬pid²ÎÊı½Ï´ó£¬×·Çó¿ìËÙÏìÓ¦ÆÚÍûÖµ£»PID²ÎÊı¿ÉÒÔÔÚÒ£¿ØÁ¬½ÓÉÏÎ»»úºóÊµÊ±²é¿´
+//æ— åˆ·ç”µæœºå…‰æµpidï¼Œèµ·é£æˆ–è€…æ–¹å‘æ‘‡æ†æ§åˆ¶ç§»åŠ¨æ—¶ï¼Œpidå‚æ•°è¾ƒå¤§ï¼Œè¿½æ±‚å¿«é€Ÿå“åº”æœŸæœ›å€¼ï¼›PIDå‚æ•°å¯ä»¥åœ¨é¥æ§è¿æ¥ä¸Šä½æœºåå®æ—¶æŸ¥çœ‹
 void flow_pid_param_move(void){
 	
-	//if(flow_pid_param_type!=0) return;  //ÕâÒ»¾ä¿ÉÒÔ·ÀÖ¹·ÉĞĞ¹ı³Ìpid²ÎÊı±»×Ô¶¯¸ü¸Ä£¬·½±ãÊ¹ÓÃÉÏÎ»»úĞŞ¸Äpid²ÎÊı
+	//if(flow_pid_param_type!=0) return;  //è¿™ä¸€å¥å¯ä»¥é˜²æ­¢é£è¡Œè¿‡ç¨‹pidå‚æ•°è¢«è‡ªåŠ¨æ›´æ”¹ï¼Œæ–¹ä¾¿ä½¿ç”¨ä¸Šä½æœºä¿®æ”¹pidå‚æ•°
 	
 	flow_pid_param_type=2;
 	
-#if (FLY_TYPE ==3) //ÎŞË¢
+#if (FLY_TYPE ==3) //æ— åˆ·
 
-		//XÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı  ËÙ¶È
-		Flow_SpeedPid_x.kp = 0.410f;//±ÈÀı  0.600f
-		Flow_SpeedPid_x.ki = 0.000f;//»ı·Ö
-		Flow_SpeedPid_x.kd = 0.300f;//Î¢·Ö
-		//YÄÚ»·¹âÁ÷ËÙ¶ÈPID²ÎÊı ËÙ¶È
-		Flow_SpeedPid_y.kp = Flow_SpeedPid_x.kp;//±ÈÀı
-		Flow_SpeedPid_y.ki = Flow_SpeedPid_x.ki;//»ı·Ö
-		Flow_SpeedPid_y.kd = Flow_SpeedPid_x.kd;//Î¢·Ö
+		//Xå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•°  é€Ÿåº¦
+		Flow_SpeedPid_x.kp = 0.410f;//æ¯”ä¾‹  0.600f
+		Flow_SpeedPid_x.ki = 0.000f;//ç§¯åˆ†
+		Flow_SpeedPid_x.kd = 0.300f;//å¾®åˆ†
+		//Yå†…ç¯å…‰æµé€Ÿåº¦PIDå‚æ•° é€Ÿåº¦
+		Flow_SpeedPid_y.kp = Flow_SpeedPid_x.kp;//æ¯”ä¾‹
+		Flow_SpeedPid_y.ki = Flow_SpeedPid_x.ki;//ç§¯åˆ†
+		Flow_SpeedPid_y.kd = Flow_SpeedPid_x.kd;//å¾®åˆ†
 		
-		//XÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı  Î»ÖÃ
-		Flow_PosPid_x.kp = 2.000f;//±ÈÀı  2.000f
-		Flow_PosPid_x.ki = 0.000f;//»ı·Ö
-		Flow_PosPid_x.kd = 0.006f;//Î¢·Ö
-		//YÍâ»·¹âÁ÷Î»ÖÃPID²ÎÊı Î»ÖÃ 
-		Flow_PosPid_y.kp = Flow_PosPid_x.kp;//±ÈÀı
-		Flow_PosPid_y.ki = Flow_PosPid_x.ki;//»ı·Ö
-		Flow_PosPid_y.kd = Flow_PosPid_x.kd;//Î¢·Ö
+		//Xå¤–ç¯å…‰æµä½ç½®PIDå‚æ•°  ä½ç½®
+		Flow_PosPid_x.kp = 2.000f;//æ¯”ä¾‹  2.000f
+		Flow_PosPid_x.ki = 0.000f;//ç§¯åˆ†
+		Flow_PosPid_x.kd = 0.006f;//å¾®åˆ†
+		//Yå¤–ç¯å…‰æµä½ç½®PIDå‚æ•° ä½ç½® 
+		Flow_PosPid_y.kp = Flow_PosPid_x.kp;//æ¯”ä¾‹
+		Flow_PosPid_y.ki = Flow_PosPid_x.ki;//ç§¯åˆ†
+		Flow_PosPid_y.kd = Flow_PosPid_x.kd;//å¾®åˆ†
 	
 #endif
 }
