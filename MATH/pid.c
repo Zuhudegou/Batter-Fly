@@ -1,22 +1,9 @@
-/**********************STM32 ¿ªÔ´ÎŞÈË»ú*******************************************************/
-//  V1.0 ¿ªÔ´×÷Õß£ºĞ¡ÄÏ&zin£»ÈÕÆÚ£º2016.11.21
-//           STM32F103C8·É¿ØÒÔ¼°Ò£¿Ø»ù´¡¹¦ÄÜÒÔ¼°ºËĞÄ´úÂëÊµÏÖ£»
-//  V2.0 ¿ªÔ´×÷Õß£ºĞ¡Áõ£»ÈÕÆÚ£º2020.05.17
-//           schedulerÈÎÎñ¼Ü¹¹µ÷Õû£¬Ôö¼ÓÆÁÄ»ÒÔ¼°ÆøÑ¹¼Æ£¬ĞÂÔöPIDÔÚÏßµ÷Õû¹¦ÄÜ£»
-//  V3.0 ¿ªÔ´×÷Õß£ºzhibo_sz&sunsp£»ÈÕÆÚ£º2024.06.01
-//           ĞÂÔöÒ»¼ü¶¨¸ßÆğ·É£¬ĞüÍ£ÔË¶¯¿ØÖÆÒÔ¼°É²³µÓÅ»¯£¬ÆøÑ¹Ò£¿ØÆÁÄ»ÍÓÂİÒÇµÈÄ£¿éÓÅ»¯£¬ĞÂÔöÎŞË¢µç»ú£»
-/********************************************************************************************/
-
-//ÉùÃ÷£º
-//      ±¾³ÌĞò½ö¶Ô¹º»úÓÃ»§¿ªÔ´£¬Ñ§Ï°Ê¹ÓÃ£¬ËùÓĞÈ¨¹éÒÔÉÏ×÷ÕßËùÓĞ£»
-//      Î´¾­Ğí¿É£¬²»µÃ´«ÔÄ¡¢×ªÔØ¡¢¹«¿ª¡¢×ªÂô±¾´úÂë¡£
-
 
 #include "pid.h"
 #include "myMath.h"	
 
 /**************************************************************
- *ÅúÁ¿¸´Î»PIDº¯Êı
+ *æ‰¹é‡å¤ä½PIDå‡½æ•°
  * @param[in] 
  * @param[out] 
  * @return     
@@ -30,7 +17,7 @@ void pidRest(PidObject **pid,const uint8_t len)
 	    pid[i]->prevError = 0;
 	    pid[i]->out = 0;
 			pid[i]->offset = 0;
-			//Õâ¸öpid¸´Î»²»È«Ãæ£¬Ó¦¸Ã°ÑÆÚÍûÖµºÍ·´À¡Öµ¶¼¸´Î»ÁË
+			//è¿™ä¸ªpidå¤ä½ä¸å…¨é¢ï¼Œåº”è¯¥æŠŠæœŸæœ›å€¼å’Œåé¦ˆå€¼éƒ½å¤ä½äº†
 	}
 }
 
@@ -48,19 +35,19 @@ void pidUpdate(PidObject* pid,const float dt)
 	 float error;
 	 float deriv;
 	
-    error = pid->desired - pid->measured; //µ±Ç°½Ç¶ÈÓëÊµ¼Ê½Ç¶ÈµÄÎó²î
+    error = pid->desired - pid->measured; //å½“å‰è§’åº¦ä¸å®é™…è§’åº¦çš„è¯¯å·®
 
-    pid->integ += error * dt;	 //Îó²î»ı·ÖÀÛ¼ÓÖµ
+    pid->integ += error * dt;	 //è¯¯å·®ç§¯åˆ†ç´¯åŠ å€¼
 	
-	//  pid->integ = LIMIT(pid->integ,pid->IntegLimitLow,pid->IntegLimitHigh); //½øĞĞ»ı·ÖÏŞ·ù
+	//  pid->integ = LIMIT(pid->integ,pid->IntegLimitLow,pid->IntegLimitHigh); //è¿›è¡Œç§¯åˆ†é™å¹…
 
-    deriv = (error - pid->prevError)/dt;  //Ç°ºóÁ½´ÎÎó²î×öÎ¢·Ö
+    deriv = (error - pid->prevError)/dt;  //å‰åä¸¤æ¬¡è¯¯å·®åšå¾®åˆ†
 	
-    pid->out = pid->kp * error + pid->ki * pid->integ + pid->kd * deriv;//PIDÊä³ö
+    pid->out = pid->kp * error + pid->ki * pid->integ + pid->kd * deriv;//PIDè¾“å‡º
 	
-		//pid->out = LIMIT(pid->out,pid->OutLimitLow,pid->OutLimitHigh); //Êä³öÏŞ·ù
+		//pid->out = LIMIT(pid->out,pid->OutLimitLow,pid->OutLimitHigh); //è¾“å‡ºé™å¹…
 		
-    pid->prevError = error;  //¸üĞÂÉÏ´ÎµÄÎó²î
+    pid->prevError = error;  //æ›´æ–°ä¸Šæ¬¡çš„è¯¯å·®
 		
 }
 
@@ -70,11 +57,11 @@ void pidUpdate(PidObject* pid,const float dt)
  * @param[out] 
  * @return     
  ***************************************************************/	
-void CascadePID(PidObject* pidRate,PidObject* pidAngE,const float dt)  //´®¼¶PID
+void CascadePID(PidObject* pidRate,PidObject* pidAngE,const float dt)  //ä¸²çº§PID
 {	 
-	pidUpdate(pidAngE,dt);    //ÏÈ¼ÆËãÍâ»·
+	pidUpdate(pidAngE,dt);    //å…ˆè®¡ç®—å¤–ç¯
 	pidRate->desired = pidAngE->out;
-	pidUpdate(pidRate,dt);    //ÔÙ¼ÆËãÄÚ»·	
+	pidUpdate(pidRate,dt);    //å†è®¡ç®—å†…ç¯	
 }
 
 /*******************************END*********************************/
