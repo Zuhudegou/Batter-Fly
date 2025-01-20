@@ -1,0 +1,98 @@
+/**********************STM32 开源无人机*******************************************************/
+//  V1.0 开源作者：小南&zin；日期：2016.11.21
+//           STM32F103C8飞控以及遥控基础功能以及核心代码实现；
+//  V2.0 开源作者：小刘；日期：2020.05.17
+//           scheduler任务架构调整，增加屏幕以及气压计，新增PID在线调整功能；
+//  V3.0 开源作者：zhibo_sz&sunsp；日期：2024.06.01
+//           新增一键定高起飞，悬停运动控制以及刹车优化，气压遥控屏幕陀螺仪等模块优化，新增无刷电机；
+/********************************************************************************************/
+
+//声明：
+//      本程序仅对购机用户开源，学习使用，所有权归以上作者所有；
+//      未经许可，不得传阅、转载、公开、转卖本代码。
+
+
+
+#include "stm32f10x.h"
+#include "misc.h"
+#include "delay.h"
+#include "ALL_DATA.h"
+#include "scheduler.h"
+static volatile uint32_t usTicks = 0;
+
+volatile uint32_t SysTick_count22; //系统滴答时钟
+u8 sys_init_ok = 1;
+//// ????????? ,49????
+//volatile uint32_t sysTickUptime = 0;
+void cycleCounterInit(void)
+{
+    RCC_ClocksTypeDef clocks;
+    RCC_GetClocksFreq(&clocks);
+    usTicks = clocks.SYSCLK_Frequency / 1000000;
+}
+
+//系统滴答时钟回调，在stm32f10x.it.c 中断调用
+void SysTick_IRQ(void)//1ms??
+{
+	static u8 cnt;
+	
+		SysTick_count++; //1ms
+	if(!sys_init_ok) return;
+	
+	//LED_1ms_DRV();//?????
+	
+	cnt++;	cnt %= 2; //2ms 执行一次 Loop_check()
+	if(cnt)	Loop_check();//2ms???? 
+}  
+
+uint32_t GetSysTime_us(void) 
+{
+    register uint32_t ms, cycle_cnt;
+    do {
+        ms = SysTick_count;
+        cycle_cnt = SysTick->VAL;
+    	} while (ms != SysTick_count);
+    return (ms * 1000) + (usTicks * 1000 - cycle_cnt) / usTicks;
+}
+
+//    毫秒级延时函数	 
+void delay_ms(uint16_t nms)
+{
+	uint32_t t0=GetSysTime_us();
+	while(GetSysTime_us() - t0 < nms * 1000);	
+	SysTick_count22++;
+}
+
+void delay_us(unsigned int i)
+ {  
+	char x=0;   
+    while( i--)
+    {	
+       for(x=1;x>0;x--);
+    }
+ }	
+ 
+
+/**************************************************************
+ *返回系统当前的运行时间  单位ms
+ * @param[in] 
+ * @param[out] 
+ * @return  ms   
+ ***************************************************************/	
+float micros(void) //返回系统当前时间
+{
+	 //SysTick_count 滴答时钟ms计数
+	 //SysTick->VAL 滴答时钟定时器计数器counter 总计数满168000.0f/8.0f为1个ms，并发生滴答时钟ms中断
+	 //168MHZ/1000 = 168000每个ms需要的晶振频率输了
+	 //滴答时钟八分频
+    return SysTick_count22 + (SysTick->LOAD - SysTick->VAL)/(72000.0f/8.0f);//当前系统时间 单位ms  
+}
+///***********************************************************************
+// * 
+// * @param[in] 
+// * @param[out] 
+// * @return     
+// **********************************************************************/
+//float height;
+
+/********************************END OF FILE*****************************************/ 
