@@ -1,21 +1,7 @@
-/**********************STM32 ¿ªÔ´ÎÞÈË»ú*******************************************************/
-//  V1.0 ¿ªÔ´×÷Õß£ºÐ¡ÄÏ&zin£»ÈÕÆÚ£º2016.11.21
-//           STM32F103C8·É¿ØÒÔ¼°Ò£¿Ø»ù´¡¹¦ÄÜÒÔ¼°ºËÐÄ´úÂëÊµÏÖ£»
-//  V2.0 ¿ªÔ´×÷Õß£ºÐ¡Áõ£»ÈÕÆÚ£º2020.05.17
-//           schedulerÈÎÎñ¼Ü¹¹µ÷Õû£¬Ôö¼ÓÆÁÄ»ÒÔ¼°ÆøÑ¹¼Æ£¬ÐÂÔöPIDÔÚÏßµ÷Õû¹¦ÄÜ£»
-//  V3.0 ¿ªÔ´×÷Õß£ºzhibo_sz&sunsp£»ÈÕÆÚ£º2024.06.01
-//           ÐÂÔöÒ»¼ü¶¨¸ßÆð·É£¬ÐüÍ£ÔË¶¯¿ØÖÆÒÔ¼°É²³µÓÅ»¯£¬ÆøÑ¹Ò£¿ØÆÁÄ»ÍÓÂÝÒÇµÈÄ£¿éÓÅ»¯£¬ÐÂÔöÎÞË¢µç»ú£»
-/********************************************************************************************/
-
-//ÉùÃ÷£º
-//      ±¾³ÌÐò½ö¶Ô¹º»úÓÃ»§¿ªÔ´£¬Ñ§Ï°Ê¹ÓÃ£¬ËùÓÐÈ¨¹éÒÔÉÏ×÷ÕßËùÓÐ£»
-//      Î´¾­Ðí¿É£¬²»µÃ´«ÔÄ¡¢×ªÔØ¡¢¹«¿ª¡¢×ªÂô±¾´úÂë¡£
-
-
 #include "ALL_DEFINE.h"
 #include "scheduler.h"
 #include "spl06.h"
-#include "SPL06_cankao.h" //ÐÂµÄ
+#include "SPL06_cankao.h" //æ–°çš„
 #include "ANO_Data_Transfer.h"
 #include "WIFI_UFO.h"
 #include "flow.h"
@@ -25,8 +11,8 @@ loop_t loop;
 //u32 time[10],time_sum;
 int32_t time[10],time_sum;
  
-//2msÖ´ÐÐÒ»´Î
-//ÔÚdelay.cµ÷ÓÃ£¬2msÒ»´Î
+//2msæ‰§è¡Œä¸€æ¬¡
+//åœ¨delay.cè°ƒç”¨ï¼Œ2msä¸€æ¬¡
 void Loop_check()
 {
 	loop.cnt_2ms++;
@@ -43,7 +29,7 @@ void Loop_check()
 	}
 	else
 	{
-		loop.check_flag += 1;   //¸Ã±êÖ¾Î»ÔÚÑ­»·ºóÃæÇå0
+		loop.check_flag += 1;   //è¯¥æ ‡å¿—ä½åœ¨å¾ªçŽ¯åŽé¢æ¸…0
 	}
 	
 }
@@ -59,39 +45,39 @@ void main_loop()
 		{
 			loop.cnt_2ms = 0;
 			
-			Duty_2ms();	 					//ÖÜÆÚ2msµÄÈÎÎñ
+			Duty_2ms();	 					//å‘¨æœŸ2msçš„ä»»åŠ¡
 		}
 		if( loop.cnt_4ms >= 2 )
 		{
 			loop.cnt_4ms = 0;
-			Duty_4ms();						//ÖÜÆÚ4msµÄÈÎÎñ
+			Duty_4ms();						//å‘¨æœŸ4msçš„ä»»åŠ¡
 		}
 		if( loop.cnt_6ms >= 3 )
 		{
 			loop.cnt_6ms = 0;
-			Duty_6ms();						//ÖÜÆÚ6msµÄÈÎÎñ
+			Duty_6ms();						//å‘¨æœŸ6msçš„ä»»åŠ¡
 		}
 		if( loop.cnt_10ms >= 5 )
 		{
 			loop.cnt_10ms = 0;
-			Duty_10ms();					//ÖÜÆÚ10msµÄÈÎÎñ
+			Duty_10ms();					//å‘¨æœŸ10msçš„ä»»åŠ¡
 		} 
 		if( loop.cnt_20ms >= 10 )
 		{
 			loop.cnt_20ms = 0;
-			Duty_20ms();					//ÖÜÆÚ20msµÄÈÎÎñ
+			Duty_20ms();					//å‘¨æœŸ20msçš„ä»»åŠ¡
 		}
 		if( loop.cnt_50ms >= 25 )
 		{
 			loop.cnt_50ms = 0;
-			Duty_50ms();					//ÖÜÆÚ50msµÄÈÎÎñ
+			Duty_50ms();					//å‘¨æœŸ50msçš„ä»»åŠ¡
 		}
 		if( loop.cnt_1000ms >= 500)
 		{
 			loop.cnt_1000ms = 0;
-			Duty_1000ms();				//ÖÜÆÚ1sµÄÈÎÎñ
+			Duty_1000ms();				//å‘¨æœŸ1sçš„ä»»åŠ¡
 		}
-		loop.check_flag = 0;		//Ñ­»·ÔËÐÐÍê±Ï±êÖ¾
+		loop.check_flag = 0;		//å¾ªçŽ¯è¿è¡Œå®Œæ¯•æ ‡å¿—
 	}
 }
 
@@ -100,9 +86,9 @@ void Duty_2ms()
 {
 	time[0] = GetSysTime_us();
 	
-	MpuGetData();				          //¶ÁÈ¡ÍÓÂÝÒÇÊý¾Ý£¬»ñÈ¡µ½½ÇËÙ¶ÈÖ±½Ó»á×÷ÓÃÓÚ×ËÌ¬¿ØÖÆµÄpidÄÚ»·²âÁ¿Öµ£¨2msÒ»´Î£©£¬µ«Íâ»·²âÁ¿ÖµÒª¾­¹ý GetAngle()½âËã²ÅÓÐ¸üÐÂ£¨6msÒ»´Î£©£¬ÁíÍâ¶¨¸ßÊ±£¨10msÒ»´Î£©µÄÔË¶¯¼ÓËÙ¶ÈGetAccz()Ò²ÐèÒª¾­¹ý GetAngle()½âËã£¨6msÒ»´Î£©
-	FlightPidControl(0.002f);     //×ËÌ¬¿ØÖÆ
-	MotorControl();               //µç»ú¿ØÖÆ
+	MpuGetData();				          //è¯»å–é™€èžºä»ªæ•°æ®ï¼ŒèŽ·å–åˆ°è§’é€Ÿåº¦ç›´æŽ¥ä¼šä½œç”¨äºŽå§¿æ€æŽ§åˆ¶çš„pidå†…çŽ¯æµ‹é‡å€¼ï¼ˆ2msä¸€æ¬¡ï¼‰ï¼Œä½†å¤–çŽ¯æµ‹é‡å€¼è¦ç»è¿‡ GetAngle()è§£ç®—æ‰æœ‰æ›´æ–°ï¼ˆ6msä¸€æ¬¡ï¼‰ï¼Œå¦å¤–å®šé«˜æ—¶ï¼ˆ10msä¸€æ¬¡ï¼‰çš„è¿åŠ¨åŠ é€Ÿåº¦GetAccz()ä¹Ÿéœ€è¦ç»è¿‡ GetAngle()è§£ç®—ï¼ˆ6msä¸€æ¬¡ï¼‰
+	FlightPidControl(0.002f);     //å§¿æ€æŽ§åˆ¶
+	MotorControl();               //ç”µæœºæŽ§åˆ¶
 	CloseLED(); 
 	
 	time[0] = GetSysTime_us() - time[0];
@@ -113,15 +99,15 @@ void Duty_4ms()
 {
 	time[1] = GetSysTime_us();
 	
-	ANO_NRF_Check_Event();    //É¨Ãè½ÓÊÕ2.4GÐÅºÅ£¬£¬´æÔÚÊý¾ÝÔò±ê¼Ç Nrf_Erro=0
-	//ANO_DT_Data_Exchange();		//ÒÑ×ªÒÆµ½Duty_20ms()£¬Í¨¹ýÉäÆµ·¢ËÍ·É¿ØÊý¾Ý¸øÒ£¿ØÆ÷, ½ÓÊÕÆµÂÊÒª¿ì£¨4msÒ»´Î£¬±ÜÃâÒÔºóÒ£¿ØÊý¾Ý£©£¬µ«·¢ËÍÆµÂÊÒªÂý£¬²»È»ÊÕ²»È«
+	ANO_NRF_Check_Event();    //æ‰«ææŽ¥æ”¶2.4Gä¿¡å·ï¼Œï¼Œå­˜åœ¨æ•°æ®åˆ™æ ‡è®° Nrf_Erro=0
+	//ANO_DT_Data_Exchange();		//å·²è½¬ç§»åˆ°Duty_20ms()ï¼Œé€šè¿‡å°„é¢‘å‘é€é£žæŽ§æ•°æ®ç»™é¥æŽ§å™¨, æŽ¥æ”¶é¢‘çŽ‡è¦å¿«ï¼ˆ4msä¸€æ¬¡ï¼Œé¿å…ä»¥åŽé¥æŽ§æ•°æ®ï¼‰ï¼Œä½†å‘é€é¢‘çŽ‡è¦æ…¢ï¼Œä¸ç„¶æ”¶ä¸å…¨
 	
-	//Õâ¸öÊÇ½ÓÊÕÒ£¿ØÆ÷Êý¾Ý£¬½ÓÊÕÍêÊý¾Ý£¬±ØÐëÂíÉÏ µ÷ÓÃRC_Analy();£¬·ñÔò»áÒÅÂ©µôÒ£¿ØÆ÷µÄÊý¾Ý£¬ÌØ±ðÊÇËø¶¨Óë½âËøÃüÁî
-	Rc_Connect();  						//1.0 ½âÎöÒ£¿ØÆ÷Êý¾Ý,·Åµ½ Remote£¬£¬£¬½âÎöµ½Êý¾ÝÔòNrf_Erro++
+	//è¿™ä¸ªæ˜¯æŽ¥æ”¶é¥æŽ§å™¨æ•°æ®ï¼ŒæŽ¥æ”¶å®Œæ•°æ®ï¼Œå¿…é¡»é©¬ä¸Š è°ƒç”¨RC_Analy();ï¼Œå¦åˆ™ä¼šé—æ¼æŽ‰é¥æŽ§å™¨çš„æ•°æ®ï¼Œç‰¹åˆ«æ˜¯é”å®šä¸Žè§£é”å‘½ä»¤
+	Rc_Connect();  						//1.0 è§£æžé¥æŽ§å™¨æ•°æ®,æ”¾åˆ° Remoteï¼Œï¼Œï¼Œè§£æžåˆ°æ•°æ®åˆ™Nrf_Erro++
 	
-	Mode_Controler(0.004f); 	//1.1 ·ÖÎö´¦ÀíÊÕµ½µÄRemoteÊý¾Ý£»¶¨¸ß¶¨µãÄ£Ê½»áµ÷ÓÃFlow_mode_two()»ñÈ¡ÆÚÍû×ËÌ¬½Ç
+	Mode_Controler(0.004f); 	//1.1 åˆ†æžå¤„ç†æ”¶åˆ°çš„Remoteæ•°æ®ï¼›å®šé«˜å®šç‚¹æ¨¡å¼ä¼šè°ƒç”¨Flow_mode_two()èŽ·å–æœŸæœ›å§¿æ€è§’
 	
-	RC_Analy();	     					//1.2 Ò£¿ØÆ÷¿ØÖÆÖ¸Áî´¦Àí£¬½øÒ»²½´¦Àí RemoteÄÚµÄÊý¾Ý£¬±ÈÈçËø¶¨ºÍ½âËøºÍÍÓÂÝÒÇÐ£×¼
+	RC_Analy();	     					//1.2 é¥æŽ§å™¨æŽ§åˆ¶æŒ‡ä»¤å¤„ç†ï¼Œè¿›ä¸€æ­¥å¤„ç† Remoteå†…çš„æ•°æ®ï¼Œæ¯”å¦‚é”å®šå’Œè§£é”å’Œé™€èžºä»ªæ ¡å‡†
 	
 	time[1] = GetSysTime_us() - time[1];
 }
@@ -131,7 +117,7 @@ void Duty_6ms()
 {
 	time[2] = GetSysTime_us(); 
 	
-	GetAngle(&MPU6050,&Angle,0.006f);   //½âËãÍÓÂÝÒÇÊý¾Ý£¬Éú³É×ËÌ¬Êý¾Ý£¬¸üÐÂAngle;;; ×¢Òâ£ºzÖáÔË¶¯¼ÓËÙ¶È£¨Ïû³ýÖØÁ¦Ó°Ïì£©NormAcczÒ²ÔÚÕâÀï¸üÐÂ£¨6msÒ»´Î£©, ¶¨¸ßËã·¨HeightPidControlÐèÒªÓÃµ½Õâ¸öÖµ£¨10msÒ»´Î£©¡£
+	GetAngle(&MPU6050,&Angle,0.006f);   //è§£ç®—é™€èžºä»ªæ•°æ®ï¼Œç”Ÿæˆå§¿æ€æ•°æ®ï¼Œæ›´æ–°Angle;;; æ³¨æ„ï¼šzè½´è¿åŠ¨åŠ é€Ÿåº¦ï¼ˆæ¶ˆé™¤é‡åŠ›å½±å“ï¼‰NormAcczä¹Ÿåœ¨è¿™é‡Œæ›´æ–°ï¼ˆ6msä¸€æ¬¡ï¼‰, å®šé«˜ç®—æ³•HeightPidControléœ€è¦ç”¨åˆ°è¿™ä¸ªå€¼ï¼ˆ10msä¸€æ¬¡ï¼‰ã€‚
 	
 	time[2] = GetSysTime_us() - time[2];
 }
@@ -141,20 +127,20 @@ void Duty_10ms()
 {
 	time[3] = GetSysTime_us();
 
-	//Õâ¸öÒªÒÆµ½4msÈÎÎñ£¬ÓëRc_Connect()Í¬ÆµÂÊ£¬
-	//RC_Analy();	     					//1.2 Ò£¿ØÆ÷¿ØÖÆÖ¸Áî´¦Àí£¬½øÒ»²½´¦Àí RemoteÄÚµÄÊý¾Ý
+	//è¿™ä¸ªè¦ç§»åˆ°4msä»»åŠ¡ï¼Œä¸ŽRc_Connect()åŒé¢‘çŽ‡ï¼Œ
+	//RC_Analy();	     					//1.2 é¥æŽ§å™¨æŽ§åˆ¶æŒ‡ä»¤å¤„ç†ï¼Œè¿›ä¸€æ­¥å¤„ç† Remoteå†…çš„æ•°æ®
 	
-	//¹âÁ÷Êý¾Ý²É¼¯£¬ÔÚ´®¿Ú1µÄ»Øµ÷º¯Êý¡£µ÷ÓÃ Flow_Receive1()£¬Ö´ÐÐÆµÂÊÓÉ¹âÁ÷Ä£¿é×ÔÉí¾ö¶¨¡£
-	Pixel_Flow_Fix(0.006f);  			//mini¹âÁ÷Êý¾ÝÈÚºÏ´¦Àí£¬¹âÁ÷ÒÔ¼°¼¤¹â¸ß¶ÈÊý¾Ý½ÓÊÕÔÚ´®¿Ú1»Øµ÷º¯Êý×Ô¶¯½ÓÊÕ
-	Flow_Pos_Controler(0.006f);		//¹âÁ÷¶¨µã¿ØÖÆ	
+	//å…‰æµæ•°æ®é‡‡é›†ï¼Œåœ¨ä¸²å£1çš„å›žè°ƒå‡½æ•°ã€‚è°ƒç”¨ Flow_Receive1()ï¼Œæ‰§è¡Œé¢‘çŽ‡ç”±å…‰æµæ¨¡å—è‡ªèº«å†³å®šã€‚
+	Pixel_Flow_Fix(0.006f);  			//miniå…‰æµæ•°æ®èžåˆå¤„ç†ï¼Œå…‰æµä»¥åŠæ¿€å…‰é«˜åº¦æ•°æ®æŽ¥æ”¶åœ¨ä¸²å£1å›žè°ƒå‡½æ•°è‡ªåŠ¨æŽ¥æ”¶
+	Flow_Pos_Controler(0.006f);		//å…‰æµå®šç‚¹æŽ§åˆ¶	
 	
-	Height_Get(0.01f);			//»ñÈ¡ÆøÑ¹¸ß¶ÈÊý¾Ý£¬ÆøÑ¹Ô­Ê¼Êý¾Ý»ñÈ¡
-	High_Data_Calc(10);			//ÆøÑ¹¸ß¶ÈÊý¾ÝÈÚºÏ£¬Ë¢ÐÂ FlightData.High.bara_height£¬ÓÃÓÚ´óÓÚ¼¤¹âÁ¿³ÌÊ±£¨4Ã×£©
+	Height_Get(0.01f);			//èŽ·å–æ°”åŽ‹é«˜åº¦æ•°æ®ï¼Œæ°”åŽ‹åŽŸå§‹æ•°æ®èŽ·å–
+	High_Data_Calc(10);			//æ°”åŽ‹é«˜åº¦æ•°æ®èžåˆï¼Œåˆ·æ–° FlightData.High.bara_heightï¼Œç”¨äºŽå¤§äºŽæ¿€å…‰é‡ç¨‹æ—¶ï¼ˆ4ç±³ï¼‰
 	
-	//Height_Get_New(0.01f);			//»ñÈ¡ÆøÑ¹¸ß¶ÈÊý¾Ý£¬ÆøÑ¹Ô­Ê¼Êý¾Ý»ñÈ¡
+	//Height_Get_New(0.01f);			//èŽ·å–æ°”åŽ‹é«˜åº¦æ•°æ®ï¼Œæ°”åŽ‹åŽŸå§‹æ•°æ®èŽ·å–
 	
 	
-	HeightPidControl(0.006f); 		//Ë¢ÐÂControl_high(¼¤¹â»òÆøÑ¹), ÒÔ¼°¶¨¸ßÄ£Ê½ÏÂµÄ¸ß¶È¿ØÖÆ³ÌÐò£¬·Ç¶¨¸ßÄ£Ê½ÍË³ö
+	HeightPidControl(0.006f); 		//åˆ·æ–°Control_high(æ¿€å…‰æˆ–æ°”åŽ‹), ä»¥åŠå®šé«˜æ¨¡å¼ä¸‹çš„é«˜åº¦æŽ§åˆ¶ç¨‹åºï¼Œéžå®šé«˜æ¨¡å¼é€€å‡º
 	
 	time[3] = GetSysTime_us() - time[3];
 }
@@ -164,8 +150,8 @@ void Duty_20ms()
 {
 	time[4] = GetSysTime_us();
 
-	ANTO_polling(); 	//Í¨¹ý·É¿Ø´®¿Ú3·¢ËÍÊý¾Ýµ½ÉÏÎ»»ú  //Í¬Ê±Ò²»á¸üÐÂÀ´×ÔÉÏÎ»»úµÄpid²ÎÊý¸ø·É¿Ø£¬Õâ¸öpid²ÎÊý²»Ò»¶¨´Ó´®¿Ú½ÓÊÕ¶øÀ´¡£Ò²¿ÉÄÜÊÇÒ£¿Ø×ªËÍ
-	ANO_DT_Data_Exchange();		//·¢ËÍÊý¾Ý¸øÒ£¿ØÆ÷, ½ÓÊÕÆµÂÊÒª¿ì£¨4msÒ»´Î£¬±ÜÃâÒÔºóÒ£¿ØÊý¾Ý£©£¬µ«·¢ËÍÆµÂÊÒªÂý£¬²»È»ÊÕ²»È«£¬Ò£¿Ø½ÓÊÕÎª10msÒ»´Î
+	ANTO_polling(); 	//é€šè¿‡é£žæŽ§ä¸²å£3å‘é€æ•°æ®åˆ°ä¸Šä½æœº  //åŒæ—¶ä¹Ÿä¼šæ›´æ–°æ¥è‡ªä¸Šä½æœºçš„pidå‚æ•°ç»™é£žæŽ§ï¼Œè¿™ä¸ªpidå‚æ•°ä¸ä¸€å®šä»Žä¸²å£æŽ¥æ”¶è€Œæ¥ã€‚ä¹Ÿå¯èƒ½æ˜¯é¥æŽ§è½¬é€
+	ANO_DT_Data_Exchange();		//å‘é€æ•°æ®ç»™é¥æŽ§å™¨, æŽ¥æ”¶é¢‘çŽ‡è¦å¿«ï¼ˆ4msä¸€æ¬¡ï¼Œé¿å…ä»¥åŽé¥æŽ§æ•°æ®ï¼‰ï¼Œä½†å‘é€é¢‘çŽ‡è¦æ…¢ï¼Œä¸ç„¶æ”¶ä¸å…¨ï¼Œé¥æŽ§æŽ¥æ”¶ä¸º10msä¸€æ¬¡
 	
 	time[4] = GetSysTime_us() - time[4];
 }
@@ -175,11 +161,11 @@ void Duty_50ms()
 {
 	time[5] = GetSysTime_us();
 	
-	PilotLED(); 						//LEDË¢ÐÂ
+	PilotLED(); 						//LEDåˆ·æ–°
 	
-	Flag_Check();   			 //´«¸ÐÆ÷×´Ì¬±êÖ¾
+	Flag_Check();   			 //ä¼ æ„Ÿå™¨çŠ¶æ€æ ‡å¿—
 	
-	Voltage_Check();			//·É¿ØµçÑ¹¼ì²â
+	Voltage_Check();			//é£žæŽ§ç”µåŽ‹æ£€æµ‹
 	
 	time[5] = GetSysTime_us() - time[5];
 }
@@ -188,25 +174,25 @@ void Duty_50ms()
 void Duty_1000ms()
 {
 	u8 i;
-  NRF_SSI = NRF_SSI_CNT;  //NRFÐÅºÅÇ¿¶È
+  NRF_SSI = NRF_SSI_CNT;  //NRFä¿¡å·å¼ºåº¦
 	NRF_SSI_CNT = 0;
 	
-	WIFI_SSI = WIFI_SSI_CNT;//WiFiÐÅºÅÇ¿¶È
+	WIFI_SSI = WIFI_SSI_CNT;//WiFiä¿¡å·å¼ºåº¦
 	WIFI_SSI_CNT = 0;
 	
-	Locat_SSI = Locat_SSI_CNT;//ÊÓ¾õÎ»ÖÃÊý¾ÝÆµÂÊ
+	Locat_SSI = Locat_SSI_CNT;//è§†è§‰ä½ç½®æ•°æ®é¢‘çŽ‡
 	Locat_SSI_CNT = 0;
 	
-	Flow_SSI = Flow_SSI_CNT;  //¹âÁ÷Êý¾ÝÆµÂÊ Flow_SSI_CNTÔÚ´®¿Ú1»Øµ÷º¯Êý£¨¹âÁ÷Êý¾Ý½ÓÊÕ£©»á×ÔÔö
+	Flow_SSI = Flow_SSI_CNT;  //å…‰æµæ•°æ®é¢‘çŽ‡ Flow_SSI_CNTåœ¨ä¸²å£1å›žè°ƒå‡½æ•°ï¼ˆå…‰æµæ•°æ®æŽ¥æ”¶ï¼‰ä¼šè‡ªå¢ž
 	Flow_SSI_CNT = 0;
 	
-		//¼ì²âÊÓ¾õ¶¨Î»Ä£¿éÊÇ·ñ²åÈë
+		//æ£€æµ‹è§†è§‰å®šä½æ¨¡å—æ˜¯å¦æ’å…¥
 	if(Locat_SSI>10)  Locat_Err = 0;
 	else Locat_Mode=0,Locat_Err = 1;
 	
-	  //¼ì²â¹âÁ÷Ä£¿éÊÇ·ñ²åÈë
-	if(Flow_SSI>10)  Flow_Err = 0;  //¹âÁ÷Õý³££¬´®¿ÚÊÕµ½¹âÁ÷Ä£¿é10ÌõÊý¾Ý£¬¼´±íÊ¾¹âÁ÷Õý³£
-	else 						 Flow_Err = 1;	//¹âÁ÷Òì³££¬´ËÊ±ÔÚ Mode_Controler()»á×Ô¶¯¸ÄÎª×ËÌ¬Ä£Ê½
+	  //æ£€æµ‹å…‰æµæ¨¡å—æ˜¯å¦æ’å…¥
+	if(Flow_SSI>10)  Flow_Err = 0;  //å…‰æµæ­£å¸¸ï¼Œä¸²å£æ”¶åˆ°å…‰æµæ¨¡å—10æ¡æ•°æ®ï¼Œå³è¡¨ç¤ºå…‰æµæ­£å¸¸
+	else 						 Flow_Err = 1;	//å…‰æµå¼‚å¸¸ï¼Œæ­¤æ—¶åœ¨ Mode_Controler()ä¼šè‡ªåŠ¨æ”¹ä¸ºå§¿æ€æ¨¡å¼
 	
 	time_sum = 0;
 	for(i=0;i<6;i++)	time_sum += time[i];
