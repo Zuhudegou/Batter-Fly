@@ -1,15 +1,3 @@
-/**********************STM32 ¿ªÔ´ÎÞÈË»ú*******************************************************/
-//  V1.0 ¿ªÔ´×÷Õß£ºÐ¡ÄÏ&zin£»ÈÕÆÚ£º2016.11.21
-//           STM32F103C8·É¿ØÒÔ¼°Ò£¿Ø»ù´¡¹¦ÄÜÒÔ¼°ºËÐÄ´úÂëÊµÏÖ£»
-//  V2.0 ¿ªÔ´×÷Õß£ºÐ¡Áõ£»ÈÕÆÚ£º2020.05.17
-//           schedulerÈÎÎñ¼Ü¹¹µ÷Õû£¬Ôö¼ÓÆÁÄ»ÒÔ¼°ÆøÑ¹¼Æ£¬ÐÂÔöPIDÔÚÏßµ÷Õû¹¦ÄÜ£»
-//  V3.0 ¿ªÔ´×÷Õß£ºzhibo_sz&sunsp£»ÈÕÆÚ£º2024.06.01
-//           ÐÂÔöÒ»¼ü¶¨¸ßÆð·É£¬ÐüÍ£ÔË¶¯¿ØÖÆÒÔ¼°É²³µÓÅ»¯£¬ÆøÑ¹Ò£¿ØÆÁÄ»ÍÓÂÝÒÇµÈÄ£¿éÓÅ»¯£¬ÐÂÔöÎÞË¢µç»ú£»
-/********************************************************************************************/
-
-//ÉùÃ÷£º
-//      ±¾³ÌÐò½ö¶Ô¹º»úÓÃ»§¿ªÔ´£¬Ñ§Ï°Ê¹ÓÃ£¬ËùÓÐÈ¨¹éÒÔÉÏ×÷ÕßËùÓÐ£»
-//      Î´¾­Ðí¿É£¬²»µÃ´«ÔÄ¡¢×ªÔØ¡¢¹«¿ª¡¢×ªÂô±¾´úÂë¡£
 
 
 
@@ -17,53 +5,47 @@
 #include "scheduler.h"
 #include "STM32F10x_IWDG.h"
 
-//ÌØ±ðÉùÃ÷£ºÇëÔÚÎÞÈË¿Õ¿õµÄµØ´ø»òÕßÊÒÄÚ½øÐÐ·ÉÐÐ¡£Óöµ½·Ç³£½ô¼±µÄÇé¿ö£¬¿É½ô¼±¹Ø±ÕÒ£¿Ø¡£
 
-/*³õÊ¼»¯¶ÀÁ¢¿´ÃÅ¹·
-//prer:·ÖÆµÊý:0~7(Ö»ÓÐµÍ3Î»ÓÐÐ§£¡)
-//·ÖÆµÒò×Ó=4*2^prer.×î´óÖµÖ»ÄÜÊÇ256!
-//rlr:ÖØ×°ÔØ¼Ä´æÆ÷Öµ:µÍ11Î»ÓÐÐ§.
-//Ê±¼ä¼ÆËã(´ó¸Å):Tout=((4*2^prer)*rlr)/40 (ms).   */
 
 void IWDG_Init(u8 prer,u16 rlr) 
 {	
- 	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);  //Ê¹ÄÜ¶Ô¼Ä´æÆ÷IWDG_PRºÍIWDG_RLRµÄÐ´³¬×÷
+ 	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);  //ä½¿èƒ½å¯¹å¯„å­˜å™¨IWDG_PRå’ŒIWDG_RLRçš„å†™è¶…ä½œ
 	
-	IWDG_SetPrescaler(prer);  //ÉèÖÃIWDGÔ¤·ÖÆµÖµ£ºÉèÖÃIWDGÔ¤·ÖÆµÖµ64
+	IWDG_SetPrescaler(prer);  //è®¾ç½®IWDGé¢„åˆ†é¢‘å€¼ï¼šè®¾ç½®IWDGé¢„åˆ†é¢‘å€¼64
 	
-	IWDG_SetReload(rlr);  //ÉèÖÃIWDGÖØ×°ÔØÖµ
+	IWDG_SetReload(rlr);  //è®¾ç½®IWDGé‡è£…è½½å€¼
 	
-	IWDG_ReloadCounter();  //°´ÕÕIWDGÖØ×°ÔØ¼Ä´æÆ÷µÄÖµÖØ×°ÔØIWDG¼ÆÊýÆ÷
+	IWDG_ReloadCounter();  //æŒ‰ç…§IWDGé‡è£…è½½å¯„å­˜å™¨çš„å€¼é‡è£…è½½IWDGè®¡æ•°å™¨
 	
-	IWDG_Enable();  //Ê¹ÄÜIWDG
+	IWDG_Enable();  //ä½¿èƒ½IWDG
 }
  
-//Î¹¶ÀÁ¢¿´ÃÅ¹·
+//å–‚ç‹¬ç«‹çœ‹é—¨ç‹—
 void IWDG_Feed(void)
 {   
- 	IWDG_ReloadCounter();//Î¹¹·								   
+ 	IWDG_ReloadCounter();//å–‚ç‹—								   
 }
 
 
 int main(void)
 {	
-	//MPU_Err =1;  //  ÒªµÈÍÓÂÝÒÇ³õÊ¼»¯³É¹¦ºó£¬ÔÙ×öÍÓÂÝÒÇÊý¾ÝÓÐÐ§ÐÔÅÐ¶Ï(scheduler.cµ÷ÓÃ)
+	//MPU_Err =1;  //  è¦ç­‰é™€èžºä»ªåˆå§‹åŒ–æˆåŠŸåŽï¼Œå†åšé™€èžºä»ªæ•°æ®æœ‰æ•ˆæ€§åˆ¤æ–­(scheduler.cè°ƒç”¨)
 
-	cycleCounterInit();  //µÃµ½ÏµÍ³Ã¿¸öusµÄÏµÍ³CLK¸öÊý£¬ÎªÒÔºóÑÓÊ±º¯Êý£¬ºÍµÃµ½¾«×¼µÄµ±Ç°Ö´ÐÐÊ±¼äÊ¹ÓÃ
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); //4¸öbitµÄÇÀÕ¼ÓÅÏÈ¼¶£¬4¸öbitµÄ×ÓÓÅÏÈ¼¶
-	SysTick_Config(SystemCoreClock / 1000);	//ÏµÍ³µÎ´ðÊ±ÖÓ
+	cycleCounterInit();  //å¾—åˆ°ç³»ç»Ÿæ¯ä¸ªusçš„ç³»ç»ŸCLKä¸ªæ•°ï¼Œä¸ºä»¥åŽå»¶æ—¶å‡½æ•°ï¼Œå’Œå¾—åˆ°ç²¾å‡†çš„å½“å‰æ‰§è¡Œæ—¶é—´ä½¿ç”¨
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); //4ä¸ªbitçš„æŠ¢å ä¼˜å…ˆçº§ï¼Œ4ä¸ªbitçš„å­ä¼˜å…ˆçº§
+	SysTick_Config(SystemCoreClock / 1000);	//ç³»ç»Ÿæ»´ç­”æ—¶é’Ÿ
 
 
 	
-	ALL_Init();//ÏµÍ³³õÊ¼»¯ 
-  IWDG_Init(4,625);    //³õÊ¼»¯¿´ÃÅ¹·  Óë·ÖÆµÎª64,ÖØÔØÖµÎª625,Òç³öÊ±¼ä1s
+	ALL_Init();//ç³»ç»Ÿåˆå§‹åŒ– 
+  IWDG_Init(4,625);    //åˆå§‹åŒ–çœ‹é—¨ç‹—  ä¸Žåˆ†é¢‘ä¸º64,é‡è½½å€¼ä¸º625,æº¢å‡ºæ—¶é—´1s
 	
 	
 	while(1)
 	{
-		  main_loop();  //³ÌÐòÔËÐÐ,  Loop_check() ÔÚdelay.cµ÷ÓÃ£¬2msÒ»´Î
+		  main_loop();  //ç¨‹åºè¿è¡Œ,  Loop_check() åœ¨delay.cè°ƒç”¨ï¼Œ2msä¸€æ¬¡
 		
-		  IWDG_Feed();  //Î¹¿´ÃÅ¹··ÀÖ¹³ÌÐòÅÜËÀ
+		  IWDG_Feed();  //å–‚çœ‹é—¨ç‹—é˜²æ­¢ç¨‹åºè·‘æ­»
 	}
 }
 
